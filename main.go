@@ -130,10 +130,58 @@ func WriteFileInfo(filepath string) {
 	fmt.Println("=========================================")
 }
 
+func WriteDirInfo(filepath string) {
+	files, err := os.ReadDir("./" + filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sum_of_files := 0
+	sum_of_loc := 0
+	sum_of_size := 0
+	for _, file := range files {
+		sum_of_files += 1
+		//lines of code
+		readFile, err := os.Open(file.Name())
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileScanner := bufio.NewScanner(readFile)
+
+		fileScanner.Split(bufio.ScanLines)
+
+		number_of_lines := 0
+		for fileScanner.Scan() {
+			if len(fileScanner.Text()) != 0 {
+				number_of_lines += 1
+			}
+		}
+		sum_of_loc += number_of_lines
+		readFile.Close()
+
+		//size
+		info, _ := file.Info()
+		sum_of_size += int(info.Size())
+	}
+
+	fmt.Println("=========================================")
+	fmt.Println("Num of files        sum loc          sum size")
+	fmt.Println("=========================================")
+	var builder strings.Builder
+	new_size, metric := GetSizeAndMetric(sum_of_size)
+	new_size_formated := fmt.Sprintf("%.1f", new_size)
+	builder.WriteString(IntToString(sum_of_files) + "                    " + IntToString((sum_of_loc)) + "     " + new_size_formated + metric)
+	fmt.Println(builder.String())
+	fmt.Println("=========================================")
+}
+
 func main() {
 	args := os.Args[1:]
 	if len(args) > 0 && args[0] == "fileinf" {
 		WriteFileInfo("")
+	} else if len(args) > 0 && args[0] == "dirinf" {
+		WriteDirInfo("")
 	} else if len(args) > 1 && args[0] == "cdir" {
 		new_dir := args[1]
 		reader := bufio.NewReader(os.Stdin)
@@ -143,6 +191,8 @@ func main() {
 			switch command {
 			case "fileinf":
 				WriteFileInfo(new_dir)
+			case "dirinf":
+				WriteDirInfo(new_dir)
 			case "quit":
 				return
 			default:
