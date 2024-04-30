@@ -33,6 +33,17 @@ func DigitCount(num int) int {
 	return digit_count
 }
 
+func GetSizeAndMetric(size int) (float32, string) {
+	if size < 1024 {
+		return float32(size), "kb"
+	} else if size < 1024*1024 {
+		return float32(size) / 1024.0, "mb"
+	} else if size < 1024*1024*1024 {
+		return float32(size) / (1024.0 * 1024.0), "gb"
+	}
+	return float32(size), "kb"
+}
+
 func WriteFileInfo() {
 	files, err := os.ReadDir("./")
 	if err != nil {
@@ -73,11 +84,15 @@ func WriteFileInfo() {
 			builder.WriteRune(' ')
 			len_diff -= 1
 		}
-		builder.WriteString("          ")
+		builder.WriteString("        ")
 
 		//size
 		info, _ := file.Info()
-		builder.WriteString(IntToString(int((info.Size()))))
+		file_size := int((info.Size()))
+
+		new_size, metric := GetSizeAndMetric(file_size)
+		new_size_formated := fmt.Sprintf("%.1f", new_size)
+		builder.WriteString(new_size_formated)
 
 		local_size_len := DigitCount(int(info.Size()))
 		size_len_diff := longest_size - local_size_len
@@ -86,7 +101,12 @@ func WriteFileInfo() {
 			size_len_diff -= 1
 		}
 
-		builder.WriteString(" kb")
+		builder.WriteString(metric)
+
+		builder.WriteString("        ")
+
+		//number of lines
+
 		fmt.Println(builder.String())
 	}
 	fmt.Println("========================")
@@ -97,4 +117,24 @@ func main() {
 	if len(args) > 0 && args[0] == "fileinf" {
 		WriteFileInfo()
 	}
+
+	//testing loc counting
+	/*
+		readFile, err := os.Open("test.txt")
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileScanner := bufio.NewScanner(readFile)
+
+		fileScanner.Split(bufio.ScanLines)
+
+		number_of_lines := 0
+		for fileScanner.Scan() {
+			fmt.Println(fileScanner.Text())
+			number_of_lines += 1
+		}
+		fmt.Println("this file contains ", number_of_lines, " lines")
+		readFile.Close()
+	*/
 }
