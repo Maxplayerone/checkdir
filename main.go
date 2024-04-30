@@ -45,8 +45,8 @@ func GetSizeAndMetric(size int) (float32, string) {
 	return float32(size), "kb"
 }
 
-func WriteFileInfo() {
-	files, err := os.ReadDir("./")
+func WriteFileInfo(filepath string) {
+	files, err := os.ReadDir("./" + filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -133,6 +133,21 @@ func WriteFileInfo() {
 func main() {
 	args := os.Args[1:]
 	if len(args) > 0 && args[0] == "fileinf" {
-		WriteFileInfo()
+		WriteFileInfo("")
+	} else if len(args) > 1 && args[0] == "cdir" {
+		new_dir := args[1]
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			c, _ := reader.ReadString('\n')
+			command := strings.TrimSpace(c)
+			switch command {
+			case "fileinf":
+				WriteFileInfo(new_dir)
+			case "quit":
+				return
+			default:
+				fmt.Println("We don't support that command")
+			}
+		}
 	}
 }
