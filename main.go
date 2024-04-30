@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -67,8 +68,9 @@ func WriteFileInfo() {
 			longest_size = DigitCount(int(info.Size()))
 		}
 	}
-
-	fmt.Println("========================")
+	fmt.Println("=========================================")
+	fmt.Println("FileName             loc          Size")
+	fmt.Println("=========================================")
 	for _, file := range files {
 		if IsExe(file.Name()) || IsDotFirst((file.Name())) {
 			continue
@@ -85,6 +87,26 @@ func WriteFileInfo() {
 			len_diff -= 1
 		}
 		builder.WriteString("        ")
+
+		//lines of code
+		readFile, err := os.Open(file.Name())
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileScanner := bufio.NewScanner(readFile)
+
+		fileScanner.Split(bufio.ScanLines)
+
+		number_of_lines := 0
+		for fileScanner.Scan() {
+			if len(fileScanner.Text()) != 0 {
+				number_of_lines += 1
+			}
+		}
+		builder.WriteString(IntToString(number_of_lines))
+		builder.WriteString("       ")
+		readFile.Close()
 
 		//size
 		info, _ := file.Info()
@@ -103,13 +125,9 @@ func WriteFileInfo() {
 
 		builder.WriteString(metric)
 
-		builder.WriteString("        ")
-
-		//number of lines
-
 		fmt.Println(builder.String())
 	}
-	fmt.Println("========================")
+	fmt.Println("=========================================")
 }
 
 func main() {
@@ -117,24 +135,4 @@ func main() {
 	if len(args) > 0 && args[0] == "fileinf" {
 		WriteFileInfo()
 	}
-
-	//testing loc counting
-	/*
-		readFile, err := os.Open("test.txt")
-
-		if err != nil {
-			fmt.Println(err)
-		}
-		fileScanner := bufio.NewScanner(readFile)
-
-		fileScanner.Split(bufio.ScanLines)
-
-		number_of_lines := 0
-		for fileScanner.Scan() {
-			fmt.Println(fileScanner.Text())
-			number_of_lines += 1
-		}
-		fmt.Println("this file contains ", number_of_lines, " lines")
-		readFile.Close()
-	*/
 }
